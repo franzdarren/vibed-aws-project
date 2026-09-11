@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Gallery — AI Photo Tagger{% endblock %}
+
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <form class="search-box" method="get" action="{{ url_for('main.gallery') }}">
+      <input type="text" name="tag" placeholder="Search by tag…" value="{{ active_tag or '' }}">
+      <button type="submit" class="btn">Go</button>
+    </form>
+
+    <h3>Folders</h3>
+    <ul class="folder-list">
+      <li>
+        <a href="{{ url_for('main.gallery') }}" class="{{ 'active' if not active_folder else '' }}">
+          All photos
+        </a>
+      </li>
+      {% for folder in folders %}
+      <li>
+        <a href="{{ url_for('main.gallery', folder=folder) }}"
+           class="{{ 'active' if active_folder == folder else '' }}">
+          {{ folder }}
+        </a>
+      </li>
+      {% else %}
+      <li class="muted">No folders yet</li>
+      {% endfor %}
+    </ul>
+
+    {% if active_tag or active_folder %}
+    <a class="btn btn-clear" href="{{ url_for('main.gallery') }}">Clear filter</a>
+    {% endif %}
+  </aside>
+
+  <section class="gallery">
+    <h2>
+      {% if active_folder %}Folder: {{ active_folder }}
+      {% elif active_tag %}Tag: {{ active_tag }}
+      {% else %}All photos{% endif %}
+      <span class="count">({{ photos|length }})</span>
+    </h2>
+
+    {% if photos %}
+    <div class="grid">
+      {% for photo in photos %}
+      <a class="card" href="{{ url_for('main.photo_detail', photo_id=photo.photo_id) }}">
+        <img src="{{ photo.s3_url }}" alt="{{ photo.tags|join(', ') }}" loading="lazy">
+        <div class="card-body">
+          <div class="chips">
+            {% for tag in photo.tags[:4] %}<span class="chip">{{ tag }}</span>{% endfor %}
+          </div>
+          <div class="folders">
+            {% for folder in photo.folders %}<span class="folder-tag">{{ folder }}</span>{% endfor %}
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-state">No photos yet. <a href="{{ url_for('main.upload_form') }}">Upload one</a> to get started.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
